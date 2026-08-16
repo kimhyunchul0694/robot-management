@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로봇 코딩 방과후 학생 관리 시스템</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1, h2, h3 { color: #333; }
+        .section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .form-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        input, select, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        input[type="text"] { flex: 1; }
+        button { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #45a049; }
+        .btn-delete { background-color: #f44336; padding: 5px 10px; font-size: 12px; }
+        .btn-delete:hover { background-color: #da190b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+        th { background-color: #f2f2f2; }
+        .summary-container { display: flex; gap: 10px; margin-bottom: 20px; }
+        .summary-box { padding: 12px; border-radius: 8px; flex: 1; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 방과후 로봇교실 학생 관리</h1>
+
+        <!-- 요약 대시보드 -->
+        <div class="summary-container">
+            <div class="summary-box" style="background: #e3f2fd; color: #1976d2;">
+                전체 학생: <span id="total-count">0</span>명
+            </div>
+            <div class="summary-box" style="background: #e8f5e9; color: #388e3c;">
+                출석: <span id="present-count">0</span>명
+            </div>
+            <div class="summary-box" style="background: #ffebee; color: #d32f2f;">
+                결석/조퇴: <span id="absent-count">0</span>명
+            </div>
+        </div>
+
+        <!-- 1. 학생 등록 섹션 -->
+        <div class="section">
+            <h2>학생 신규 등록</h2>
+            <div class="form-group">
+                <input type="text" id="student-name" placeholder="학생 이름">
+                <input type="text" id="student-grade" placeholder="학년/반 (예: 초3-1)">
+                <button onclick="addStudent()">학생 추가</button>
+            </div>
+        </div>
+
+        <!-- 2. 학생 목록 및 출석 관리 섹션 -->
+        <div class="section">
+            <h2>학생 목록 및 출석 체크</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>이름</th>
+                        <th>학년/반</th>
+                        <th>출석 상태</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody id="student-list">
+                    <!-- 자바스크립트로 동적 생성 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 3. 10차 미션: AI 수업일지 자동 생성 섹션 -->
+        <div class="section" style="border-bottom: none;">
+            <h2>✨ 10차 미션: AI 수업일지 자동 생성</h2>
+            <div style="display: flex; flex-direction: column; gap: 10px; max-width: 100%;">
+                <input type="text" id="log-student-name" placeholder="학생 이름 (예: 홍길동)">
+                <input type="text" id="log-topic" placeholder="오늘 수업 주제 (예: 마퀸 플러스 라인트레이싱)">
+                <textarea id="log-performance" placeholder="학생 수행 내용 (예: L2, R2 센서 보정 후 코스를 완주함)" rows="3"></textarea>
+                <button onclick="generateAILog()" style="background-color: #2196F3;">🤖 AI 수업일지 생성하기</button>
+            </div>
+
+            <div style="margin-top: 15px;">
+                <strong>작성된 AI 수업일지 결과:</strong>
+                <div id="log-result" style="white-space: pre-wrap; background: #fafafa; padding: 15px; border: 1px solid #ccc; border-radius: 5px; margin-top: 8px; min-height: 80px; color: #333;">
+                    위 정보를 입력하고 생성 버튼을 누르면 AI가 일지를 작성합니다.
+                </div>
+            </div>
+        </div>
+
+        <!-- 11차 미션: AI 학부모 안내문 생성 -->
+        <div style="margin-top: 20px; border-top: 1px solid #ccc; pt-20">
+          <h3>📱 11차 미션: AI 학부모 알림장 생성</h3>
+          <button onclick="generateNotice()" style="background-color: #28a745; color: white; padding: 10px 15px; border: none; cursor: pointer;">
+        💬 학부모 알림장 생성하기
+          </button>
+          <div id="notice-result" style="margin-top: 15px; padding: 15px; background: #e9f7ef; border-radius: 5px; white-space: pre-wrap;">
+        알림장 생성 버튼을 누르면 학부모님 전송용 문구가 여기에 표시됩니다.
+          </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
