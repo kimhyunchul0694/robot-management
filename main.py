@@ -1,11 +1,11 @@
 import os
+import requests
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-import google.generativeai as genai
 
 import models
 from database import engine, get_db
@@ -13,9 +13,8 @@ from database import engine, get_db
 # 1. DB 테이블 생성
 models.Base.metadata.create_all(bind=engine)
 
-# 2. Gemini API 설정 (Render Environment에서 GEMINI_API_KEY를 불러옴)
+# 2. Gemini API 설정 (Render 환경변수 로드)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "test")
-genai.configure(api_key=GEMINI_API_KEY)
 
 app = FastAPI(title="로봇 교실 관리 및 AI 일지 시스템")
 
@@ -105,7 +104,7 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
 
 
 # ==========================================
-# [AI 수업일지 자동 생성 API]
+# [10차 미션] AI 수업일지 자동 생성 API
 # ==========================================
 
 @app.post("/api/generate-log")
@@ -124,17 +123,38 @@ def generate_daily_log(data: DailyLogRequest):
     - 수업 중 학생의 성취와 태도를 강조해 주세요.
     """
 
+    # REST API 호출 URL (gemini-3.6-flash 적용)
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "contents": [{
+            "parts": [{"text": prompt}]
+        }]
+    }
+
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(prompt)
-        return {"log": response.text}
+        res = requests.post(url, json=payload, headers=headers, timeout=10)
+        res_data = res.json()
+
+        if res.status_code != 200:
+            print("\n=== Gemini API Response Error ===")
+            print(res_data)
+            print("=================================\n")
+            raise HTTPException(status_code=500, detail="Gemini API 응답 오류가 발생했습니다.")
+
+        # 응답 텍스트 추출
+        generated_text = res_data['candidates'][0]['content']['parts'][0]['text']
+        return {"log": generated_text}
+
+    except requests.exceptions.Timeout:
+        raise HTTPException(status_code=504, detail="AI 응답 시간이 초과되었습니다.")
     except Exception as e:
         print("API Error Detail:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 
 # ==========================================
-# [AI 학부모 안내문 자동 생성 API]
+# [11차 미션] AI 학부모 안내문 자동 생성 API
 # ==========================================
 
 @app.post("/api/generate-notice")
@@ -155,10 +175,28 @@ def generate_parent_notice(data: NoticeRequest):
     - 전체 분량은 모바일로 읽기 좋은 4~5줄 내외
     """
 
+    # REST API 호출 URL (gemini-3.6-flash 적용)
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "contents": [{
+            "parts": [{"text": prompt}]
+        }]
+    }
+
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
-        response = model.generate_content(prompt)
-        return {"notice": response.text}
+        res = requests.post(url, json=payload, headers=headers, timeout=10)
+        res_data = res.json()
+
+        if res.status_code != 200:
+            print("\n=== Gemini Notice API Response Error ===")
+            print(res_data)
+            print("========================================\n")
+            raise HTTPException(status_code=500, detail="Gemini API 응답 오류가 발생했습니다.")
+
+        generated_text = res_data['candidates'][0]['content']['parts'][0]['text']
+        return {"notice": generated_text}
+
     except Exception as e:
         print("Notice API Error Detail:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
