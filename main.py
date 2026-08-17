@@ -123,7 +123,6 @@ def generate_daily_log(data: DailyLogRequest):
     - 수업 중 학생의 성취와 태도를 강조해 주세요.
     """
 
-    # REST API 호출 URL (gemini-3.6-flash 적용)
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
     headers = {"Content-Type": "application/json"}
     payload = {
@@ -133,7 +132,8 @@ def generate_daily_log(data: DailyLogRequest):
     }
 
     try:
-        res = requests.post(url, json=payload, headers=headers, timeout=10)
+        # timeout을 30초로 연장
+        res = requests.post(url, json=payload, headers=headers, timeout=30)
         res_data = res.json()
 
         if res.status_code != 200:
@@ -142,7 +142,6 @@ def generate_daily_log(data: DailyLogRequest):
             print("=================================\n")
             raise HTTPException(status_code=500, detail="Gemini API 응답 오류가 발생했습니다.")
 
-        # 응답 텍스트 추출
         generated_text = res_data['candidates'][0]['content']['parts'][0]['text']
         return {"log": generated_text}
 
@@ -175,7 +174,6 @@ def generate_parent_notice(data: NoticeRequest):
     - 전체 분량은 모바일로 읽기 좋은 4~5줄 내외
     """
 
-    # REST API 호출 URL (gemini-3.6-flash 적용)
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={GEMINI_API_KEY}"
     headers = {"Content-Type": "application/json"}
     payload = {
@@ -185,7 +183,8 @@ def generate_parent_notice(data: NoticeRequest):
     }
 
     try:
-        res = requests.post(url, json=payload, headers=headers, timeout=10)
+        # timeout을 30초로 연장
+        res = requests.post(url, json=payload, headers=headers, timeout=30)
         res_data = res.json()
 
         if res.status_code != 200:
@@ -197,6 +196,8 @@ def generate_parent_notice(data: NoticeRequest):
         generated_text = res_data['candidates'][0]['content']['parts'][0]['text']
         return {"notice": generated_text}
 
+    except requests.exceptions.Timeout:
+        raise HTTPException(status_code=504, detail="AI 응답 시간이 초과되었습니다.")
     except Exception as e:
         print("Notice API Error Detail:", str(e))
         raise HTTPException(status_code=500, detail=str(e))
